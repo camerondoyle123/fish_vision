@@ -35,7 +35,8 @@ class multiTools:
 
     def threaded_process_range(self, id_list):
         # this creates an n-length array to place your objects in
-        nthreads = get_n_thread(len(id_list), get_max=True)
+        nthreads = self.get_n_thread(len(id_list), get_max=True)
+        print('there are {0} threads available...\n\n'.format(nthreads))
 
         threads = []
 
@@ -49,3 +50,5 @@ class multiTools:
         [t.start() for t in threads]
         # wait for the threads to finish
         [t.join() for t in threads]
+
+        print('\n\n\nthreading complete.')

@@ -3,6 +3,7 @@ import json
 import sys
 import pprint as pp
 from pathlib import Path
+from tqdm import tqdm
 from pymongo import MongoClient
 from bson.binary import Binary
 from PIL import Image
@@ -20,8 +21,9 @@ class ripFiles:
     base_url = "https://data.pawsey.org.au/download/FDFML/frames/"
         
     # initialise
-    def __init__(self, json_path):
+    def __init__(self, json_path, collection):
         self.json_path = json_path
+        self.collection = collection
 
 
     def get_json(self):
@@ -66,15 +68,24 @@ class ripFiles:
 
         return output
             
-    def get_image_binary(self):
-        URL = base_url+file_name
-        r = requests.get(URL, stream=True)
+    def get_image_binary(self, file_names):
 
-        img = Image.open(r.raw)
-        image_bytes = io.BytesIO()
-        img.save(image_bytes, format='PNG')
-        image_binary = image_bytes.getvalue()
+        for f in tqdm(file_names):
+            # requests
+            URL = self.base_url+f['image_id']
+            r = requests.get(URL, stream=True)
+            # image processing
+            img = Image.open(r.raw)
+            image_bytes = io.BytesIO()
+            img.save(image_bytes, format='PNG')
+            image_binary = image_bytes.getvalue()
+            # send it to mongo
+            f.update({'image_byte': image_binary})
+            image_id = self.collection.insert_one(f).inserted_id
+
+        return 
+
         
-        return image_binary
+
 
 
